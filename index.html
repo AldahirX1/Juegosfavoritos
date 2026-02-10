@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centro de Juegos Favoritos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: #0a0e1a;
+            color: #fff;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23ff4785" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="%23ff4785"/></svg>'), auto;
+        }
+
+        .fondo-animado {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a1f35 50%, #0a0e1a 100%);
+            z-index: -1;
+        }
+
+        .fondo-animado::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 71, 133, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(72, 149, 239, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+            animation: rotacion 20s linear infinite;
+        }
+
+        @keyframes rotacion {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            position: relative;
+            z-index: 10;
+        }
+
+        header h1 {
+            font-family: 'Bebas Neue', cursive;
+            font-size: 72px;
+            letter-spacing: 4px;
+            background: linear-gradient(135deg, #ff4785, #4895ef, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(255, 71, 133, 0.5);
+            animation: aparecer 1s ease-out, brilloTexto 3s ease-in-out infinite;
+            position: relative;
+        }
+
+        @keyframes brilloTexto {
+            0%, 100% {
+                filter: brightness(1);
+            }
+            50% {
+                filter: brightness(1.3);
+            }
+        }
+
+        @keyframes aparecer {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulso {
+            0%, 100% {
+                box-shadow: 
+                    0 20px 60px rgba(255, 71, 133, 0.4),
+                    0 0 40px rgba(72, 149, 239, 0.3);
+            }
+            50% {
+                box-shadow: 
+                    0 20px 60px rgba(255, 71, 133, 0.6),
+                    0 0 60px rgba(72, 149, 239, 0.5);
+            }
+        }
+
+        .linea-decorativa {
+            width: 200px;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, #ff4785, #4895ef, transparent);
+            margin: 20px auto;
+            border-radius: 2px;
+            box-shadow: 0 0 20px rgba(255, 71, 133, 0.6);
+            animation: destello 2s ease-in-out infinite;
+        }
+
+        @keyframes destello {
+            0%, 100% {
+                opacity: 1;
+                box-shadow: 0 0 20px rgba(255, 71, 133, 0.6);
+            }
+            50% {
+                opacity: 0.7;
+                box-shadow: 0 0 40px rgba(255, 71, 133, 1);
+            }
+        }
+
+        .contenedor-principal {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .vista-principal {
+            display: block;
+        }
+
+        .vista-detalle {
+            display: none;
+        }
+
+        .vista-detalle.activa {
+            display: block;
+        }
+
+        .vista-principal.oculta {
+            display: none;
+        }
+
+        .grid-usuarios {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            animation: deslizar 0.8s ease-out;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        @keyframes deslizar {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .tarjeta-usuario {
+            background: rgba(20, 25, 45, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+            min-height: 280px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .tarjeta-usuario::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(135deg, #ff4785, #4895ef, #8b5cf6);
+            border-radius: 20px;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: -1;
+        }
+
+        .tarjeta-usuario:hover::before {
+            opacity: 1;
+        }
+
+        .tarjeta-usuario:hover {
+            transform: translateY(-10px) scale(1.02);
+            animation: pulso 1.5s ease-in-out infinite;
+            border-color: transparent;
+        }
+
+        .numero-usuario {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-family: 'Bebas Neue', cursive;
+            font-size: 48px;
+            color: rgba(255, 255, 255, 0.08);
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        .tarjeta-usuario h2 {
+            font-family: 'Bebas Neue', cursive;
+            font-size: 32px;
+            margin-bottom: 25px;
+            color: #fff;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .contenedor-imagenes {
+            display: none;
+        }
+
+        .caja-imagen {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .caja-imagen img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .caja-imagen:hover img {
+            transform: scale(1.15);
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 71, 133, 0.3), rgba(72, 149, 239, 0.3));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .caja-imagen:hover .overlay {
+            opacity: 1;
+        }
+
+        .boton-ver {
+            background: linear-gradient(135deg, #ff4785, #ff6b9d);
+            color: white;
+            padding: 16px 0;
+            text-align: center;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: 1.5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 71, 133, 0.4);
+            margin-top: auto;
+        }
+
+        .tarjeta-usuario:hover .boton-ver {
+            background: linear-gradient(135deg, #4895ef, #5dadff);
+            box-shadow: 0 6px 25px rgba(72, 149, 239, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .boton-volver {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .boton-volver:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(-5px);
+        }
+
+        .titulo-individual {
+            font-family: 'Bebas Neue', cursive;
+            font-size: 56px;
+            margin-bottom: 50px;
+            text-align: center;
+            background: linear-gradient(135deg, #ff4785, #4895ef);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 3px;
+            animation: aparecer 0.8s ease-out;
+            padding: 0 20px;
+        }
+
+        .grid-juegos {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            animation: deslizar 0.8s ease-out;
+        }
+
+        .tarjeta-juego {
+            background: rgba(20, 25, 45, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+
+        .tarjeta-juego::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(135deg, #ff4785, #8b5cf6);
+            border-radius: 16px;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: -1;
+        }
+
+        .tarjeta-juego:hover::before {
+            opacity: 1;
+        }
+
+        .tarjeta-juego:hover {
+            transform: translateY(-8px);
+            box-shadow: 
+                0 15px 40px rgba(255, 71, 133, 0.3),
+                0 0 30px rgba(139, 92, 246, 0.2);
+        }
+
+        .imagen-juego {
+            aspect-ratio: 3/4;
+            overflow: hidden;
+            position: relative;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .imagen-juego img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: transform 0.5s ease;
+            background: #000;
+        }
+
+        .tarjeta-juego:hover .imagen-juego img {
+            transform: scale(1.05);
+        }
+
+        .info-juego {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .info-juego h3 {
+            font-family: 'Bebas Neue', cursive;
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: #fff;
+            letter-spacing: 1.5px;
+        }
+
+        .info-juego p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 42px;
+            }
+            
+            .grid-usuarios {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 0 15px;
+            }
+            
+            .tarjeta-usuario {
+                min-height: 220px;
+                padding: 25px 20px;
+            }
+            
+            .tarjeta-usuario h2 {
+                font-size: 26px;
+            }
+            
+            .titulo-individual {
+                font-size: 32px;
+                margin-bottom: 30px;
+            }
+            
+            .grid-juegos {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+            
+            .info-juego h3 {
+                font-size: 18px;
+            }
+            
+            .info-juego p {
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 36px;
+            }
+            
+            .grid-juegos {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .tarjeta-usuario h2 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="fondo-animado"></div>
+    
+    <header>
+        <h1>Centro de Juegos Favoritos</h1>
+        <div class="linea-decorativa"></div>
+    </header>
+
+    <main class="contenedor-principal">
+        
+        <!-- VISTA PRINCIPAL -->
+        <div class="vista-principal" id="vistaPrincipal">
+            <div class="grid-usuarios">
+                
+                <div class="tarjeta-usuario" onclick="mostrarDetalle('jorge')">
+                    <div class="numero-usuario">01</div>
+                    <h2>Juegos Favoritos de Jorge</h2>
+                    <div class="contenedor-imagenes">
+                        <div class="caja-imagen">
+                            <img src="fotos/CUP" alt="Cuphead">
+                            <div class="overlay"></div>
+                        </div>
+                        <div class="caja-imagen">
+                            <img src= "fotos/MN" alt="Juego 2">
+                            <div class="overlay"></div>
+                        </div>
+                        <div class="caja-imagen">
+                            <img src="fotos/BL" alt="Juego 3">
+                            <div class="overlay"></div>
+                        </div>
+                        <div class="caja-imagen">
+                            <img src="fotos/OM" alt="Juego 4">
+                            <div class="overlay"></div>
+                        </div>
+                    </div>
+                    <div class="boton-ver">VER COLECCIÓN →</div>
+                </div>
+
+                <div class="tarjeta-usuario" onclick="mostrarDetalle('carlos')">
+                    <div class="numero-usuario">02</div>
+                    <h2>Juegos Favoritos de Carlos</h2>
+                    <div class="contenedor-imagenes">
+                        <div class="caja-imagen">
+                            <img src="carlos1.jpg" alt="Juego 1">
+                            <div class="overlay"></div>
+                        </div>
+                        <div class="caja-imagen">
+                            <img src="carlos2.jpg" alt="Juego 2">
+                            <div class="overlay"></div>
+                        </div>
+                        <div class="caja-imagen">
+                            <img src="carlos3.jpg" alt="Juego 3">
+                            <div class="overlay"></div>
+                        </div>
+                        <div class="caja-imagen">
+                            <img src="carlos4.jpg" alt="Juego 4">
+                            <div class="overlay"></div>
+                        </div>
+                    </div>
+                    <div class="boton-ver">VER COLECCIÓN →</div>
+                </div>
+
+                <div class="tarjeta-usuario" onclick="mostrarDetalle('jimmy')">
+                    <div class="numero-usuario">03</div>
+                    <h2>Juegos Favoritos de Jimmy</h2>
+                    <div class="contenedor-imagenes">
+                        <div class="caja-imagen">
+                            <img src="fotos/rd.jpg" alt="">
+                            <div class="overlay"></div>
+                        </div>
+                        <div class="caja-imagen">
+                            <img src="fotos/RD 2.jpg" alt="Juego 2">
+                            <div class="overlay"></div>
+                        </div>
+                        <div class="caja-imagen">
+                            <img src="fotos/MT.jpg" alt="Juego 3">
+                            <div class="overlay"></div>
+                        </div>
+                        <div class="caja-imagen">
+                            <img src="fotos/SH.jpg" alt="Juego 4">
+                            <div class="overlay"></div>
+                        </div>
+                    </div>
+                    <div class="boton-ver">VER COLECCIÓN →</div>
+                </div>
+
+                <div class="tarjeta-usuario" onclick="mostrarDetalle('gilmar')">
+                    <div class="numero-usuario">04</div>
+                    <h2>Juegos Favoritos de Gilmar</h2>
+                    <div class="contenedor-imagenes">
+                        <div class="caja-imagen">
+                            <img src="gilmar1.jpg" alt="Juego 1">
+                            <div class="overlay"></div>
+                        </div>
+                        <div class="caja-imagen">
+                            <img src="gilmar2.jpg" alt="Juego 2">
+                            <div class="overlay"></div>
+                        </div>
+                        <div class="caja-imagen">
+                            <img src="gilmar3.jpg" alt="Juego 3">
+                            <div class="overlay"></div>
+                        </div>
+                        <div class="caja-imagen">
+                            <img src="gilmar4.jpg" alt="Juego 4">
+                            <div class="overlay"></div>
+                        </div>
+                    </div>
+                    <div class="boton-ver">VER COLECCIÓN →</div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- VISTA DETALLE JORGE -->
+        <div class="vista-detalle" id="detalleJorge">
+            <a class="boton-volver" onclick="volverInicio()">← Volver</a>
+            <h1 class="titulo-individual">Juegos Favoritos de Jorge</h1>
+            <div class="grid-juegos">
+                <div class="tarjeta-juego">
+                    <div class="imagen-juego">
+                        <img src="fotos/CUP.webp" alt="Cuphead">
+                    </div>
+                    <div class="info-juego">
+                        <h3>Cuphead</h3>
+                        <p>Un clásico de acción tipo run and gun inspirado en las animaciones de los años 30. Combates de jefes épicos con un estilo visual único.</p>
+                    </div>
+                </div>
+                <div class="tarjeta-juego">
+                    <div class="imagen-juego">
+                        <img src="fotos/MN.JPG" alt="Minecraft">
+                    </div>
+                    <div class="info-juego">
+                        <h3>Minecraft</h3>
+                        <p>El juego de construcción y supervivencia definitivo. Explora mundos infinitos, construye lo que imagines y sobrevive en modo aventura.</p>
+                    </div>
+                </div>
+                <div class="tarjeta-juego">
+                    <div class="imagen-juego">
+                        <img src="fotos/BL.webp" alt="Blasphemous">
+                    </div>
+                    <div class="info-juego">
+                        <h3>Blasphemous</h3>
+                        <p>Metroidvania oscuro y brutal ambientado en una tierra de eterna condenación. Combates desafiantes con un arte gótico espectacular.</p>
+                    </div>
+                </div>
+                <div class="tarjeta-juego">
+                    <div class="imagen-juego">
+                        <img src="fotos/OM.JPG" alt="Omori">
+                    </div>
+                    <div class="info-juego">
+                        <h3>Omori</h3>
+                        <p>RPG psicológico surrealista que explora temas de depresión y ansiedad. Una historia emotiva con mecánicas únicas y arte encantador.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA DETALLE CARLOS -->
+        <div class="vista-detalle" id="detalleCarlos">
+            <a class="boton-volver" onclick="volverInicio()">← Volver</a>
+            <h1 class="titulo-individual">Juegos Favoritos de Carlos</h1>
+            <div class="grid-juegos">
+                <div class="tarjeta-juego">
+                    <div class="imagen-juego">
+                        <img src="fotos/BL.PNG" alt="The Witcher 3">
+                    </div>
+                    <div class="info-juego">
+                        <h3>Balatro</h3>
+                        <p>RPG épico de mundo abierto. Sigue a Geralt de Rivia en una aventura llena de decisiones morales, combates intensos y una historia magistral.</p>
+                    </div>
+                </div>
+                <div class="tarjeta-juego">
+                    <div class="imagen-juego">
+                        <img src="fotos/HLF2.JPG" alt="God of War">
+                    </div>
+                    <div class="info-juego">
+                        <h3>Half life 2</h3>
+                        <p>Reinvención brutal de la saga. Kratos y su hijo Atreus exploran la mitología nórdica en una aventura emocionante con combates espectaculares.</p>
+                    </div>
+                </div>
+                <div class="tarjeta-juego">
+                    <div class="imagen-juego">
+                        <img src="fotos/zl.JPG" alt="Elden Ring">
+                    </div>
+                    <div class="info-juego">
+                        <h3>Zelda Ocarina</h3>
+                        <p>Obra maestra de FromSoftware. Mundo abierto oscuro y desafiante con combates de jefes legendarios y libertad total de exploración.</p>
+                    </div>
+                </div>
+                <div class="tarjeta-juego">
+                    <div class="imagen-juego">
+                        <img src="fotos/MK64.JPG" alt="Cyberpunk 2077">
+                    </div>
+                    <div class="info-juego">
+                        <h3>Mario kart 64</h3>
+                        <p>RPG futurista en Night City. Personaliza a V y vive una historia de ciber-modificaciones, corporaciones y elecciones que cambian todo.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA DETALLE JIMMY -->
+        <div class="vista-detalle" id="detalleJimmy">
+            <a class="boton-volver" onclick="volverInicio()">← Volver</a>
+            <h1 class="titulo-individual">Juegos Favoritos de Jimmy</h1>
+            <div class="grid-juegos">
+                <div class="tarjeta-juego">
+                    <div class="imagen-juego">
+                        <img src="fotos/rd.jpg" alt="Red Dead Redemption">
+                    </div>
+                    <div class="info-juego">
+                        <h3>Red Dead Redemption</h3>
+                        <p>Western épico de Rockstar. Vive como John Marston en el salvaje oeste, con una historia intensa y un mundo lleno de vida y peligros.</p>
+                    </div>
+                </div>
+                <div class="tarjeta-juego">
+                    <div class="imagen-juego">
+                        <img src="fotos/RD 2.JPG" alt="Red Dead Redemption 2">
+                    </div>
+                    <div class="info-juego">
+                        <h3>Red Dead Redemption 2</h3>
+                        <p>Obra maestra del western. Arthur Morgan y la banda de Dutch en una precuela emocionante con el mundo más detallado jamás creado.</p>
+                    </div>
+                </div>
+                <div class="tarjeta-juego">
+                    <div class="imagen-juego">
+                        <img src="fotos/MT.JPG" alt="Mortal Kombat 11">
+                    </div>
+                    <div class="info-juego">
+                        <h3>Mortal Kombat 11</h3>
+                        <p>Lucha brutal y sangrienta. Combates intensos, Fatalities legendarios y un roster increíble de luchadores con mecánicas perfeccionadas.</p>
+                    </div>
+                </div>
+                <div class="tarjeta-juego">
+                    <div class="imagen-juego">
+                        <img src="fotos/SH.jpeg" alt="Skate">
+                    </div>
+                    <div class="info-juego">
+                        <h3>Schedule</h3>
+                        <p>Schedule I es un videojuego de simulación de crimen de mundo abierto que trata sobre un negocio de droga ficticio.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA DETALLE GILMAR -->
+        <div class="vista-detalle" id="detalleGilmar">
+            <a class="boton-volver" onclick="volverInicio()">← Volver</a>
+            <h1 class="titulo-individual">Juegos Favoritos de Gilmar</h1>
+            <div class="grid-juegos">
+                <div class="tarjeta-juego">
+                    <div class="imagen-juego">
+                        <img src="fotos/HT.jpg" alt="Hotline Miami">
+                    </div>
+                    <div class="info-juego">
+                        <h3>Hotline Miami</h3>
+                        <p>Acción ultra-violenta de arriba hacia abajo. Ráfagas frenéticas, estética neón de los 80s y una banda sonora synthwave adictiva.</p>
+                    </div>
+                </div>
+                <div class="tarjeta-juego">
+                    <div class="imagen-juego">
+                        <img src="fotos/HT2.webp" alt="Hotline Miami 2">
+                    </div>
+                    <div class="info-juego">
+                        <h3>Hotline Miami 2</h3>
+                        <p>Secuela más grande y brutal. Múltiples personajes, niveles más complejos y una historia más oscura. La violencia llevada al extremo.</p>
+                    </div>
+                </div>
+                <div class="tarjeta-juego">
+                    <div class="imagen-juego">
+                        <img src="fotos/PZ.jpg" alt="Pizza Tower">
+                    </div>
+                    <div class="info-juego">
+                        <h3>Pizza Tower</h3>
+                        <p>Plataformas frenético inspirado en Wario Land. Peppino corre como loco por niveles caóticos con una animación pixel art espectacular.</p>
+                    </div>
+                </div>
+                <div class="tarjeta-juego">
+                    <div class="imagen-juego">
+                        <img src="fotos/LF2.jpg" alt="Left 4 Dead 2">
+                    </div>
+                    <div class="info-juego">
+                        <h3>Left 4 Dead 2</h3>
+                        <p>Shooter cooperativo de zombies. Sobrevive al apocalipsis con amigos, enfréntate a hordas infinitas y jefes especiales únicos.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        function mostrarDetalle(usuario) {
+            document.getElementById('vistaPrincipal').classList.add('oculta');
+            
+            const detalles = {
+                'jorge': 'detalleJorge',
+                'carlos': 'detalleCarlos',
+                'jimmy': 'detalleJimmy',
+                'gilmar': 'detalleGilmar'
+            };
+            
+            document.getElementById(detalles[usuario]).classList.add('activa');
+            window.scrollTo(0, 0);
+        }
+
+        function volverInicio() {
+            document.getElementById('vistaPrincipal').classList.remove('oculta');
+            
+            document.querySelectorAll('.vista-detalle').forEach(vista => {
+                vista.classList.remove('activa');
+            });
+            
+            window.scrollTo(0, 0);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const tarjetas = document.querySelectorAll('.tarjeta-usuario');
+            
+            tarjetas.forEach((tarjeta, index) => {
+                tarjeta.style.opacity = '0';
+                tarjeta.style.transform = 'translateY(30px)';
+                
+                setTimeout(() => {
+                    tarjeta.style.transition = 'all 0.6s ease-out';
+                    tarjeta.style.opacity = '1';
+                    tarjeta.style.transform = 'translateY(0)';
+                }, 150 * index);
+            });
+
+            // Animación para tarjetas de juegos
+            const tarjetasJuego = document.querySelectorAll('.tarjeta-juego');
+            tarjetasJuego.forEach((tarjeta, index) => {
+                tarjeta.style.opacity = '0';
+                tarjeta.style.transform = 'scale(0.9)';
+                
+                setTimeout(() => {
+                    tarjeta.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+                    tarjeta.style.opacity = '1';
+                    tarjeta.style.transform = 'scale(1)';
+                }, 100 * index);
+            });
+        });
+    </script>
+</body>
+</html>
